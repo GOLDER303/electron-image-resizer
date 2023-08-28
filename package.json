@@ -8,6 +8,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "@types/toastify-js": "^1.12.0",
     "electron": "^24.4.0",
     "electron-builder": "^24.6.3",
     "typescript": "^5.0.2",
@@ -15,5 +16,8 @@
     "vite-plugin-electron": "^0.11.2",
     "vite-plugin-electron-renderer": "^0.14.5"
   },
-  "main": "dist-electron/main.js"
+  "main": "dist-electron/main.js",
+  "dependencies": {
+    "toastify-js": "^1.12.0"
+  }
 }
