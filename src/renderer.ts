@@ -5,6 +5,8 @@ const filename = document.querySelector<HTMLSpanElement>("#filename")!;
 const heightInput = document.querySelector<HTMLInputElement>("#height")!;
 const widthInput = document.querySelector<HTMLInputElement>("#width")!;
 
+const { osApi, pathApi } = window.api;
+
 const isFileImage = (file: File) => {
   const acceptedImageTypes = ["image/git", "image/png", "image/jpeg"];
 
@@ -33,6 +35,7 @@ const loadImage = (event: Event) => {
 
   form.style.display = "block";
   filename.innerText = file.name;
+  outputPath.innerText = pathApi.join(osApi.homedir(), "image_resizer");
 };
 
 img?.addEventListener("change", loadImage);
