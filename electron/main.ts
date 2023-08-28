@@ -1,5 +1,5 @@
-import { app, BrowserWindow } from 'electron'
-import path from 'node:path'
+import { app, BrowserWindow, Menu, MenuItemConstructorOptions } from "electron";
+import path from "node:path";
 
 // The built directory structure
 //
@@ -10,37 +10,86 @@ import path from 'node:path'
 // │ │ ├── main.js
 // │ │ └── preload.js
 // │
-process.env.DIST = path.join(__dirname, '../dist')
-process.env.PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, '../public')
+process.env.DIST = path.join(__dirname, "../dist");
+process.env.PUBLIC = app.isPackaged
+  ? process.env.DIST
+  : path.join(process.env.DIST, "../public");
 
-
-let win: BrowserWindow | null
+let mainWindow: BrowserWindow | null;
 // 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
-const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
+const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 
-function createWindow() {
-  win = new BrowserWindow({
-    icon: path.join(process.env.PUBLIC, 'electron-vite.svg'),
+function createMainWindow() {
+  mainWindow = new BrowserWindow({
+    title: "Image Resizer",
+    width: 800,
+    height: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, "preload.js"),
     },
-  })
+  });
 
   // Test active push message to Renderer-process.
-  win.webContents.on('did-finish-load', () => {
-    win?.webContents.send('main-process-message', (new Date).toLocaleString())
-  })
+  mainWindow.webContents.on("did-finish-load", () => {
+    mainWindow?.webContents.send(
+      "main-process-message",
+      new Date().toLocaleString()
+    );
+  });
 
   if (VITE_DEV_SERVER_URL) {
-    win.loadURL(VITE_DEV_SERVER_URL)
+    mainWindow.webContents.openDevTools();
+    mainWindow.loadURL(path.join(VITE_DEV_SERVER_URL, "renderer/index.html"));
   } else {
     // win.loadFile('dist/index.html')
-    win.loadFile(path.join(process.env.DIST, 'index.html'))
+    mainWindow.loadFile(path.join(process.env.DIST, "renderer/index.html"));
   }
 }
 
-app.on('window-all-closed', () => {
-  win = null
-})
+function createAboutWindow() {
+  mainWindow = new BrowserWindow({
+    title: "About Image Resizer",
+    width: 300,
+    height: 300,
+  });
 
-app.whenReady().then(createWindow)
+  mainWindow.webContents.on("did-finish-load", () => {
+    mainWindow?.webContents.send(
+      "main-process-message",
+      new Date().toLocaleString()
+    );
+  });
+
+  if (VITE_DEV_SERVER_URL) {
+    mainWindow.loadURL(path.join(VITE_DEV_SERVER_URL, "renderer/about.html"));
+  } else {
+    // win.loadFile('dist/index.html')
+    mainWindow.loadFile(path.join(process.env.DIST, "renderer/about.html"));
+  }
+}
+
+app.on("window-all-closed", () => {
+  mainWindow = null;
+});
+
+const mainMenuTemplate: MenuItemConstructorOptions[] = [
+  {
+    role: "fileMenu",
+  },
+  {
+    label: "Help",
+    submenu: [
+      {
+        label: "About",
+        click: createAboutWindow,
+      },
+    ],
+  },
+];
+
+app.whenReady().then(() => {
+  createMainWindow();
+
+  const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
+  Menu.setApplicationMenu(mainMenu);
+});
