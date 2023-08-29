@@ -16,6 +16,7 @@ process.env.PUBLIC = app.isPackaged
   : path.join(process.env.DIST, "../public");
 
 let mainWindow: BrowserWindow | null;
+let aboutWindow: BrowserWindow | null;
 // 🚧 Use ['ENV_NAME'] avoid vite:define plugin - Vite@2.x
 const VITE_DEV_SERVER_URL = process.env["VITE_DEV_SERVER_URL"];
 
@@ -48,24 +49,24 @@ function createMainWindow() {
 }
 
 function createAboutWindow() {
-  mainWindow = new BrowserWindow({
+  aboutWindow = new BrowserWindow({
     title: "About Image Resizer",
     width: 300,
     height: 300,
   });
 
-  mainWindow.webContents.on("did-finish-load", () => {
-    mainWindow?.webContents.send(
+  aboutWindow.webContents.on("did-finish-load", () => {
+    aboutWindow?.webContents.send(
       "main-process-message",
       new Date().toLocaleString()
     );
   });
 
   if (VITE_DEV_SERVER_URL) {
-    mainWindow.loadURL(path.join(VITE_DEV_SERVER_URL, "renderer/about.html"));
+    aboutWindow.loadURL(path.join(VITE_DEV_SERVER_URL, "renderer/about.html"));
   } else {
     // win.loadFile('dist/index.html')
-    mainWindow.loadFile(path.join(process.env.DIST, "renderer/about.html"));
+    aboutWindow.loadFile(path.join(process.env.DIST, "renderer/about.html"));
   }
 }
 
