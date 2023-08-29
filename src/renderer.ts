@@ -5,7 +5,7 @@ const filename = document.querySelector<HTMLSpanElement>("#filename")!;
 const heightInput = document.querySelector<HTMLInputElement>("#height")!;
 const widthInput = document.querySelector<HTMLInputElement>("#width")!;
 
-const { os, path, toastify } = window.api;
+const { os, path, toastify, ipcRenderer } = window.api;
 
 const isFileImage = (file: File) => {
   const acceptedImageTypes = ["image/git", "image/png", "image/jpeg"];
@@ -52,4 +52,35 @@ const loadImage = (event: Event) => {
   outputPath.innerText = path.join(os.homedir(), "image_resizer");
 };
 
-img?.addEventListener("change", loadImage);
+const sendImage = (event: Event) => {
+  event.preventDefault();
+
+  if (!img.files || !img.files[0]) {
+    sendAlert("Please upload an image", "ERROR");
+    return;
+  }
+
+  const imgPath = img.files[0].path;
+  const width = widthInput.value;
+  const height = heightInput.value;
+
+  if (!width || !height) {
+    sendAlert("Please fill in hight and width", "ERROR");
+    return;
+  }
+
+  ipcRenderer.send("image:resize", {
+    imgPath,
+    width,
+    height,
+  });
+};
+
+ipcRenderer.on("image:done", () => {
+  sendAlert(
+    `Image resized to ${widthInput.value} x ${heightInput.value}`,
+    "SUCCESS"
+  );
+});
+img.addEventListener("change", loadImage);
+form.addEventListener("submit", sendImage);

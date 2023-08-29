@@ -1,5 +1,15 @@
-import { app, BrowserWindow, Menu, MenuItemConstructorOptions } from "electron";
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Menu,
+  MenuItemConstructorOptions,
+  shell,
+} from "electron";
+import fs from "fs";
+import gm from "gm";
 import path from "node:path";
+import os from "os";
 
 // The built directory structure
 //
@@ -95,3 +105,40 @@ app.whenReady().then(() => {
   const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
   Menu.setApplicationMenu(mainMenu);
 });
+
+const resizeImage = (
+  imgPath: string,
+  width: number,
+  height: number,
+  destination: string
+) => {
+  const filename = path.basename(imgPath);
+
+  if (!fs.existsSync(destination)) {
+    fs.mkdirSync(destination);
+  }
+
+  const destinationFile = path.join(destination, filename);
+
+  gm(imgPath)
+    .resize(+width, +height, "!")
+    .write(destinationFile, (err) => {
+      if (err) {
+        console.error(err);
+      } else {
+        if (mainWindow && mainWindow.webContents) {
+          mainWindow.webContents.send("image:done");
+        }
+
+        shell.openPath(destination);
+      }
+    });
+};
+
+ipcMain.on(
+  "image:resize",
+  (_, options: { imgPath: string; width: number; height: number }) => {
+    const destination = path.join(os.homedir(), "image_resizer");
+    resizeImage(options.imgPath, options.width, options.height, destination);
+  }
+);
