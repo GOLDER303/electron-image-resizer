@@ -13,13 +13,13 @@ const isFileImage = (file: File) => {
   return file && acceptedImageTypes.includes(file.type);
 };
 
-const alertError = (message: string) => {
+const sendAlert = (message: string, type: "ERROR" | "SUCCESS") => {
   toastify.toast({
     text: message,
     duration: 5000,
     close: false,
     style: {
-      background: "red",
+      background: type == "ERROR" ? "red" : "green",
       color: "white",
       textAlign: "center",
     },
@@ -36,7 +36,7 @@ const loadImage = (event: Event) => {
   const file = target.files[0];
 
   if (!isFileImage(file)) {
-    alertError("Please select an image");
+    sendAlert("Please select an image", "ERROR");
     return;
   }
 
